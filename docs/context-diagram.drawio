@@ -1,0 +1,48 @@
+<mxfile host="65bd71144e">
+    <diagram id="U6U7MPgYyH57Ajjjd3Ul" name="ページ1">
+        <mxGraphModel dx="790" dy="647" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="GqElCJDFfDd7uZ4g5jYx-1" value="リバーシ&lt;br&gt;アプリケーション" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="300" width="150" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="GqElCJDFfDd7uZ4g5jYx-2" value="プレイヤー" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="150" y="300" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="GqElCJDFfDd7uZ4g5jYx-6" value="" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="GqElCJDFfDd7uZ4g5jYx-2">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="180" y="334.5" as="sourcePoint"/>
+                        <mxPoint x="340" y="334.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="GqElCJDFfDd7uZ4g5jYx-10" value="Webアプリ" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="130" width="130" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="GqElCJDFfDd7uZ4g5jYx-11" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;entryX=0;entryY=0.4;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.753;exitY=0.017;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="GqElCJDFfDd7uZ4g5jYx-1" target="GqElCJDFfDd7uZ4g5jYx-10">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="270" y="330" as="sourcePoint"/>
+                        <mxPoint x="320" y="280" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="GqElCJDFfDd7uZ4g5jYx-12" value="一人で交互に&lt;br&gt;白黒をうつ" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="130" width="130" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="GqElCJDFfDd7uZ4g5jYx-13" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;entryX=0.423;entryY=1.017;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="GqElCJDFfDd7uZ4g5jYx-2" target="GqElCJDFfDd7uZ4g5jYx-12">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="170" y="290" as="sourcePoint"/>
+                        <mxPoint x="237" y="157" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="D2PrhTCReTSZxN4KEeMP" name="ページ2">
+        <mxGraphModel dx="790" dy="647" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
