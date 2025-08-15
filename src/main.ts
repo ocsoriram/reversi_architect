@@ -1,0 +1,40 @@
+import express, { NextFunction, Request, Response } from "express";
+import morgan from "morgan";
+import "express-async-errors";
+
+const PORT = "3000";
+
+const app = express();
+
+const errorHandler = (
+  err: any,
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  console.error("unexpected error occurred", err);
+  res.status(500).send({
+    message: "unexpected error occurred",
+  });
+};
+
+app.use(morgan("dev"));
+
+app.get("/api/hello", async (req: Request, res: Response) => {
+  res.json({
+    message: "Hello Express!!",
+  });
+});
+
+app.get("/api/error", async (req: Request, res: Response) => {
+  throw new Error("Error endpoint");
+});
+
+// エラーハンドラは必ず全てのルート定義や通常ミドルウェアの後に置く。
+// 理由: Expressは上から順にミドルウェアを実行し、
+// エラーが発生すると「この位置以降にあるエラーハンドラ」を探して呼び出す仕組みだから。
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`Reversi App has started: http://localhost:${PORT}`);
+});
