@@ -19,6 +19,9 @@ const errorHandler = (
 };
 
 app.use(morgan("dev"));
+// static dirへのアクセスを許可　".html"を無視してアクセスできる
+// 例　http://localhost:3000/hoge → static/hoge.html
+app.use(express.static("static", { extensions: ["html"] }));
 
 app.get("/api/hello", async (req: Request, res: Response) => {
   res.json({
