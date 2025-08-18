@@ -1,0 +1,135 @@
+
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker compose up
+validating /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: services.mysql Additional property prots is not allowed
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose up -dit
+unknown shorthand flag: 'i' in -it
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose up -d
+validating /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: services.mysql Additional property prots is not allowed
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose up -d
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] Running 12/12
+ ✔ mysql Pulled                                                            13.5s
+   ✔ 4e93c6fd777f Pull complete                                             0.5s
+   ✔ cbf214d981a6 Pull complete                                             0.7s
+   ✔ 7d1cc1ea1b3d Pull complete                                             0.9s
+   ✔ e54b73e95ef3 Pull complete                                             5.8s
+   ✔ d48f3c15cb80 Pull complete                                             6.5s
+   ✔ 327840d38cb2 Pull complete                                             1.0s
+   ✔ f6cfbf240ed7 Pull complete                                             7.2s
+   ✔ 642077275f5f Pull complete                                             1.3s
+   ✔ e12b159b2a12 Pull complete                                             1.0s
+   ✔ e077469d560d Pull complete                                             5.9s
+   ✔ 94c3d7b2c9ae Pull complete                                             1.0s
+[+] Running 1/2
+ ✔ Network reversi_architecture_default    Created                          0.0s
+ ⠦ Container reversi_architecture-mysql-1  Starting                         0.6s
+Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint reversi_architecture-mysql-1 (0f75d15b2d1020da4aac1a8fefc5fabab2839f33772e5bb8f5b282809f9bbd71): Bind for 0.0.0.0:3306 failed: port is already allocated
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker ps
+CONTAINER ID   IMAGE         COMMAND                   CREATED        STATUS        PORTS                               NAMES
+1ad08c12af22   udemy-mysql   "docker-entrypoint.s…"   4 months ago   Up 39 hours   0.0.0.0:3306->3306/tcp, 33060/tcp   udemy-mysql-1
+ocsoriram@seiyanoMacBook-Air reversi_architecture % mysql -u root -p 3306
+zsh: command not found: mysql
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose exec mysql mys
+ql --user=reversi --password=password reversi
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+service "mysql" is not running
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose up -d
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] Running 1/1
+ ✔ Container reversi_architecture-mysql-1  Started                          0.1s
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose exec mysql mysql --user=reversi --password=password reversi
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+mysql: [Warning] Using a password on the command line interface can be insecure.
+ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/run/mysqld/mysqld.sock' (2)
+
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose exec K
+requires at least 2 arg(s), only received 1
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker ps
+CONTAINER ID   IMAGE          COMMAND                   CREATED          STATUS         PORTS                               NAMES
+a6219113e67d   mysql:8.0.29   "docker-entrypoint.s…"   10 minutes ago   Up 2 minutes   0.0.0.0:3306->3306/tcp, 33060/tcp   reversi_architecture-mysql-1
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose exec reversi_architecture-mysql-1 mysql
+ -u reversi -p 3306
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+service "reversi_architecture-mysql-1" is not running
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker ps
+CONTAINER ID   IMAGE          COMMAND                   CREATED          STATUS         PORTS                               NAMES
+a6219113e67d   mysql:8.0.29   "docker-entrypoint.s…"   11 minutes ago   Up 3 minutes   0.0.0.0:3306->3306/tcp, 33060/tcp   reversi_architecture-mysql-1
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose exec a6219113e67d mysql -u reversi -p 3306
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+service "a6219113e67d" is not running
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker reversi_architecture-mysql-1
+docker: unknown command: docker reversi_architecture-mysql-1
+
+Run 'docker --help' for more information
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker start -ai reversi_architecture-mysql-1
+
+
+^Ccontext canceled
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker exec -it reversi_aschitecture mysql -u reversi
+-p
+Error response from daemon: No such container: reversi_aschitecture
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker exec -it reversi_architecture mysql -u reversi -p
+Error response from daemon: No such container: reversi_architecture
+ocsoriram@seiyanoMacBook-Air reversi_architecture % pocker ps
+zsh: command not found: pocker
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker ps
+CONTAINER ID   IMAGE          COMMAND                   CREATED          STATUS          PORTS                               NAMES
+a6219113e67d   mysql:8.0.29   "docker-entrypoint.s…"   27 minutes ago   Up 19 minutes   0.0.0.0:3306->3306/tcp, 33060/tcp   reversi_architecture-mysql-1
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker exec -it reversi_architecture-mysql-1 mysql -u reversi -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 10
+Server version: 8.0.29 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> quit;
+Bye
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose exec mysql mysql -u root -p reversi
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+Enter password:
+ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)
+
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose exec mysql mysql -u reversi -p reversi
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 12
+Server version: 8.0.29 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> qiot;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'qiot' at line 1
+mysql> quit
+Bye
+ocsoriram@seiyanoMacBook-Air reversi_architecture % docker-compose exec mysql mysql --user=reversi --password=password reversi
+
+WARN[0000] /Users/ocsoriram/practice/myudemy/reversi_architecture/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 13
+Server version: 8.0.29 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> password
+    ->
