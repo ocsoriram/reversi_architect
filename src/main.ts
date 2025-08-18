@@ -1,3 +1,5 @@
+import { turnRecord } from "./dataAccess/turnRecord";
+import { TurnGateway } from "./dataAccess/turnGateway";
 import { GameRecord } from "./dataAccess/gameRecord";
 import { GameGateway } from "./dataAccess/gameGateway";
 import express, { NextFunction, Request, Response } from "express";
@@ -33,6 +35,7 @@ const PORT = "3000";
 const app = express();
 
 const gameGateway = new GameGateway();
+const turnGateway = new TurnGateway();
 
 const errorHandler = (
   err: any,
@@ -72,12 +75,7 @@ app.post("/api/games", async (req: Request, res: Response) => {
 
     const gameRecord = await gameGateway.insert(conn, now);
 
-    const turnInsertResult = await conn.execute<mysql2.ResultSetHeader>(
-      "insert into turns (game_id, turn_count, next_disc, end_at) values (?,?,?,?)",
-      [gameRecord.id, 0, DARK, now],
-    );
-
-    const turnId = turnInsertResult[0].insertId;
+    const turnRecord = await turnGateway.insert(conn, gameRecord, 0, DARK, now);
 
     const squareCount = initialBoard
       .map((line) => {
@@ -95,7 +93,7 @@ app.post("/api/games", async (req: Request, res: Response) => {
     const squaresInsertValues: any[] = [];
     initialBoard.forEach((line, y) => {
       line.forEach((disc, x) => {
-        squaresInsertValues.push(turnId);
+        squaresInsertValues.push(turnRecord?.id);
         squaresInsertValues.push(x);
         squaresInsertValues.push(y);
         squaresInsertValues.push(disc);
@@ -121,25 +119,34 @@ app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
   const conn = await connectMySQL();
   try {
     const gameRecord = await gameGateway.findLatest(conn);
-    // if (!gameRecord) {
-    //   throw new Error("Latest game not found");
-    // }
+    if (!gameRecord) {
+      throw new Error("Latest game not found");
+    }
 
     // 最新ターンの情報を取得
-    const turnSelectSql =
-      "select id, game_id, turn_count, next_disc, end_at from turns where game_id = ? and turn_count = ? ";
-    const turnSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
-      turnSelectSql,
-      [gameRecord?.id, turnCount],
+    // const turnSelectSql =
+    //   "select id, game_id, turn_count, next_disc, end_at from turns where game_id = ? and turn_count = ? ";
+    // const turnSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
+    //   turnSelectSql,
+    //   [gameRecord?.id, turnCount],
+    // );
+    // const turn = turnSelectResult[0][0];
+
+    const turnRecord = await turnGateway.findLatest(
+      conn,
+      gameRecord,
+      turnCount,
     );
-    const turn = turnSelectResult[0][0];
+    if (!turnRecord) {
+      throw Error("Latest turn not found");
+    }
 
     // 最新ターンの盤面の状態を取得
     const squareSelectSql =
       "SELECT id, turn_id, disc, x, y FROM squares WHERE turn_id = ?";
     const squaresSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
       squareSelectSql,
-      [turn["id"]],
+      [turnRecord.id],
     );
     // 最新ターンの盤面の石を設置
     const squares = squaresSelectResult[0];
@@ -151,7 +158,7 @@ app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
     const responseBody = {
       turnCount,
       board,
-      nextDisc: turn["next_disc"],
+      nextDisc: turnRecord.next_disc,
       // TODO　決着がついている場合はgame__resultsから取得する
       winnerDisc: null,
     };
