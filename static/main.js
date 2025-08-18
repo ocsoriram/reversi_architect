@@ -20,8 +20,7 @@ const LIGHT = 2;
 
 const boardElement = document.querySelector("#board");
 
-const showBoard = async () => {
-  const turnCount = 0;
+const showBoard = async (turnCount) => {
   const response = await fetch(`/api/games/latest/turns/${turnCount}`);
   const responseBody = await response.json();
   const board = responseBody.board;
@@ -47,11 +46,12 @@ const showBoard = async () => {
 
         squareElement.appendChild(stoneElement);
       }
-      // 空欄をクリックすると石が置かれる
+      // 空欄をクリックすると石が置かれる.(新しい盤面を表示する)
       else {
         squareElement.addEventListener("click", async () => {
-          const nextTurn = turnCount + 1;
-          await registerTurn(nextTurn, nextDisc, x, y);
+          const nextTurnCount = turnCount + 1;
+          await registerTurn(nextTurnCount, nextDisc, x, y);
+          await showBoard(nextTurnCount);
         });
       }
 
@@ -88,7 +88,7 @@ async function registerTurn(turnCount, disc, x, y) {
 }
 
 const main = async () => {
-  await showBoard();
+  await showBoard(0);
   await showStone(board);
   await registerGame();
 };
