@@ -1,4 +1,3 @@
-import { QueryError } from "./../node_modules/mysql2/typings/mysql/lib/protocol/sequences/Query.d";
 import express, { NextFunction, Request, Response } from "express";
 import morgan from "morgan";
 import "express-async-errors";
@@ -6,6 +5,26 @@ import mysql2 from "mysql2/promise";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+const EMPTY: number = 0;
+const DARK: number = 1;
+const LIGHT: number = 2;
+
+let initialBoard: number[][] = [];
+
+for (let col = 0; col < 8; col++) {
+  let boardRow: number[] = [];
+  for (let row = 0; row < 8; row++) {
+    boardRow.push(EMPTY);
+  }
+  initialBoard.push(boardRow);
+}
+
+// 初期stone配置
+initialBoard[3][3] = DARK;
+initialBoard[4][3] = LIGHT;
+initialBoard[3][4] = LIGHT;
+initialBoard[4][4] = DARK;
 
 const PORT = "3000";
 
@@ -37,8 +56,8 @@ app.get("/api/hello", async (req: Request, res: Response) => {
 
 // 対戦するエンドポイント
 app.post("/api/games", async (req: Request, res: Response) => {
-  const startedAt = new Date();
-  // console.log("StartDate:", startedAt);
+  const now = new Date();
+  // console.log("StartDate:", now);
   const conn = await mysql2.createConnection({
     host: "localhost",
     database: "reversi",
@@ -49,9 +68,43 @@ app.post("/api/games", async (req: Request, res: Response) => {
   try {
     await conn.beginTransaction();
 
-    await conn.execute("insert into games (started_at) values (?)", [
-      startedAt,
-    ]);
+    const gameInsertResult = await conn.execute<mysql2.ResultSetHeader>(
+      "insert into games (started_at) values (?)",
+      [now],
+    );
+    // 新しく作られたgamesテーブルの行のIDを取得
+    const gameId = gameInsertResult[0].insertId;
+
+    const turnInsertResult = await conn.execute<mysql2.ResultSetHeader>(
+      "insert into turns (game_id, turn_count, next_disc, end_at) values (?,?,?,?)",
+      [gameId, 0, DARK, now],
+    );
+
+    const turnId = turnInsertResult[0].insertId;
+
+    const squareCount = initialBoard
+      .map((line) => {
+        return line.length;
+      })
+      .reduce((v1, v2) => v1 + v2, 0);
+
+    const squaresInsertSql =
+      "insert into squares (turn_id, x, y, disc) values" +
+      Array.from(Array(squareCount))
+        .map(() => "(?,?,?,?)")
+        .join(", ");
+
+    const squaresInsertValues: any[] = [];
+    initialBoard.forEach((line, y) => {
+      line.forEach((disc, x) => {
+        squaresInsertValues.push(turnId);
+        squaresInsertValues.push(x);
+        squaresInsertValues.push(y);
+        squaresInsertValues.push(disc);
+      });
+    });
+
+    await conn.execute(squaresInsertSql, squaresInsertValues);
 
     await conn.commit();
   } catch (e) {
