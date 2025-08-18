@@ -23,12 +23,22 @@ app.use(morgan("dev"));
 // 例　http://localhost:3000/hoge → static/hoge.html
 app.use(express.static("static", { extensions: ["html"] }));
 
+// express動作確認用エンドポイント
 app.get("/api/hello", async (req: Request, res: Response) => {
   res.json({
     message: "Hello Express!!",
   });
 });
 
+// 対戦するエンドポイント
+app.post("/api/games", async (req: Request, res: Response) => {
+  const startedAt = new Date();
+  console.log("StartDate:", startedAt);
+
+  res.status(201).end();
+});
+
+// エラーハンドリング設定確認用エンドポイント
 app.get("/api/error", async (req: Request, res: Response) => {
   throw new Error("Error endpoint");
 });

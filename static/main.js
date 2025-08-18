@@ -46,11 +46,18 @@ const showBoard = async () => {
   });
 };
 
+const registerGame = async () => {
+  await fetch("/api/games", {
+    method: "POST",
+  });
+};
+
 const showStone = async (initialBoard) => {};
 
 const main = async () => {
   await showBoard();
   await showStone(initialBoard);
+  await registerGame();
 };
 
 main();
