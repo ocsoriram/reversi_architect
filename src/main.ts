@@ -55,13 +55,7 @@ app.use(morgan("dev"));
 // static dirへのアクセスを許可　".html"を無視してアクセスできる
 // 例　http://localhost:3000/hoge → static/hoge.html
 app.use(express.static("static", { extensions: ["html"] }));
-
-// express動作確認用エンドポイント
-app.get("/api/hello", async (req: Request, res: Response) => {
-  res.json({
-    message: "Hello Express!!",
-  });
-});
+app.use(express.json());
 
 // 対戦開始の盤面を保存する
 app.post("/api/games", async (req: Request, res: Response) => {
@@ -92,6 +86,7 @@ app.post("/api/games", async (req: Request, res: Response) => {
       })
       .reduce((v1, v2) => v1 + v2, 0);
 
+    //
     const squaresInsertSql =
       "insert into squares (turn_id, x, y, disc) values" +
       Array.from(Array(squareCount))
@@ -170,6 +165,108 @@ app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
   } finally {
     await conn.end();
   }
+});
+
+app.post("/api/games/latest/turns", async (req, res) => {
+  const turnCount = parseInt(req.body.turnCount);
+  const disc = parseInt(req.body.move.disc);
+  const x = parseInt(req.body.move.x);
+  const y = parseInt(req.body.move.y);
+
+  // console.log(`turnCount:${turnCount}, disc:${disc}, x:${x}, y${y}`);
+
+  // 一つ前のターンの盤面の状態を取得する
+  const conn = await connectMySQL();
+  try {
+    // ゲームの情報を取得
+    const gameSelectSql =
+      "select id, started_at from games order by id desc limit 1";
+    const gameSelectResult =
+      await conn.execute<mysql2.RowDataPacket[]>(gameSelectSql);
+    const game = gameSelectResult[0][0];
+
+    // 1ターン前の情報を取得
+    const previousTurnCount = turnCount - 1;
+    const turnSelectSql =
+      "select id, game_id, turn_count, next_disc, end_at from turns where game_id = ? and turn_count = ? ";
+    const turnSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
+      turnSelectSql,
+      [game["id"], previousTurnCount],
+    );
+    const turn = turnSelectResult[0][0];
+
+    // 最新ターンの盤面の状態を取得
+    const squareSelectSql =
+      "SELECT id, turn_id, disc, x, y FROM squares WHERE turn_id = ?";
+    const squaresSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
+      squareSelectSql,
+      [turn["id"]],
+    );
+    // 一つ前のターンの盤面の石を設置
+    const squares = squaresSelectResult[0];
+    const board = Array.from(Array(8)).map(() => Array.from(Array(8)));
+    squares.forEach((s) => {
+      board[s.y][s.x] = s.disc;
+    });
+
+    // 盤面におけるかチェックする
+
+    // 石を置く
+    board[y][x] = disc;
+
+    // ひっくり返す
+
+    // ターンを保存する
+    // 新しく作られたgamesテーブルの行のIDを取得
+
+    const now = new Date();
+    const nextDisc = disc === DARK ? LIGHT : DARK;
+
+    const turnInsertResult = await conn.execute<mysql2.ResultSetHeader>(
+      "insert into turns (game_id, turn_count, next_disc, end_at) values (?,?,?,?)",
+      [game["id"], turnCount, nextDisc, now],
+    );
+    const turnId = turnInsertResult[0].insertId;
+
+    const squareCount = board
+      .map((line) => {
+        return line.length;
+      })
+      .reduce((v1, v2) => v1 + v2, 0);
+
+    //
+    const squaresInsertSql =
+      "insert into squares (turn_id, x, y, disc) values" +
+      Array.from(Array(squareCount))
+        .map(() => "(?,?,?,?)")
+        .join(", ");
+
+    const squaresInsertValues: any[] = [];
+    board.forEach((line, y) => {
+      line.forEach((disc, x) => {
+        squaresInsertValues.push(turnId);
+        squaresInsertValues.push(x);
+        squaresInsertValues.push(y);
+        squaresInsertValues.push(disc);
+      });
+    });
+
+    await conn.execute(squaresInsertSql, squaresInsertValues);
+
+    const insertMovesSql =
+      "INSERT INTO moves (turn_id, disc, x, y) VALUES(?,?,?,?)";
+
+    await conn.execute(insertMovesSql, [turnId, disc, x, y]);
+
+    await conn.commit();
+  } catch (e) {
+    conn.rollback();
+    throw e;
+  } finally {
+    await conn.end();
+  }
+
+  res.status(201).end();
 });
 
 // エラーハンドラは必ず全てのルート定義や通常ミドルウェアの後に置く。

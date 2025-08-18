@@ -25,26 +25,34 @@ const showBoard = async () => {
   const response = await fetch(`/api/games/latest/turns/${turnCount}`);
   const responseBody = await response.json();
   const board = responseBody.board;
-  console.log(board);
+  const nextDisc = responseBody.nextDisc;
 
   // 子要素が存在すれば全て削除する
   while (boardElement.firstChild) {
     boardElement.removeChild(boardElement.firstChild);
   }
   // 盤面を作成
-  board.forEach((line) => {
-    line.forEach((square) => {
+  board.forEach((line, y) => {
+    line.forEach((square, x) => {
       // <div class="square">
       const squareElement = document.createElement("div");
       squareElement.className = "square";
 
       // <div class="stone dark">
+      // 石があったら描画する
       if (square !== EMPTY) {
         const stoneElement = document.createElement("div");
         const color = square === DARK ? "dark" : "light";
         stoneElement.className = `stone ${color}`;
 
         squareElement.appendChild(stoneElement);
+      }
+      // 空欄をクリックすると石が置かれる
+      else {
+        squareElement.addEventListener("click", async () => {
+          const nextTurn = turnCount + 1;
+          await registerTurn(nextTurn, nextDisc, x, y);
+        });
       }
 
       boardElement.appendChild(squareElement);
@@ -59,6 +67,25 @@ const registerGame = async () => {
 };
 
 const showStone = async (initialBoard) => {};
+
+async function registerTurn(turnCount, disc, x, y) {
+  const requestBody = {
+    turnCount,
+    move: {
+      disc,
+      x,
+      y,
+    },
+  };
+
+  await fetch("api/games/latest/turns", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestBody),
+  });
+}
 
 const main = async () => {
   await showBoard();
