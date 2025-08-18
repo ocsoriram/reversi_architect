@@ -1,6 +1,11 @@
+import { QueryError } from "./../node_modules/mysql2/typings/mysql/lib/protocol/sequences/Query.d";
 import express, { NextFunction, Request, Response } from "express";
 import morgan from "morgan";
 import "express-async-errors";
+import mysql2 from "mysql2/promise";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const PORT = "3000";
 
@@ -33,7 +38,28 @@ app.get("/api/hello", async (req: Request, res: Response) => {
 // 対戦するエンドポイント
 app.post("/api/games", async (req: Request, res: Response) => {
   const startedAt = new Date();
-  console.log("StartDate:", startedAt);
+  // console.log("StartDate:", startedAt);
+  const conn = await mysql2.createConnection({
+    host: "localhost",
+    database: "reversi",
+    user: "reversi",
+    password: process.env.PASSWORD,
+  });
+
+  try {
+    await conn.beginTransaction();
+
+    await conn.execute("insert into games (started_at) values (?)", [
+      startedAt,
+    ]);
+
+    await conn.commit();
+  } catch (e) {
+    await conn.rollback();
+    throw e;
+  } finally {
+    await conn.end();
+  }
 
   res.status(201).end();
 });
