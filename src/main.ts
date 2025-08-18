@@ -42,6 +42,15 @@ const errorHandler = (
   });
 };
 
+const connectMySQL = async () => {
+  return await mysql2.createConnection({
+    host: "localhost",
+    database: "reversi",
+    user: "reversi",
+    password: process.env.PASSWORD,
+  });
+};
+
 app.use(morgan("dev"));
 // static dirへのアクセスを許可　".html"を無視してアクセスできる
 // 例　http://localhost:3000/hoge → static/hoge.html
@@ -54,16 +63,11 @@ app.get("/api/hello", async (req: Request, res: Response) => {
   });
 });
 
-// 対戦するエンドポイント
+// 対戦開始の盤面を保存する
 app.post("/api/games", async (req: Request, res: Response) => {
   const now = new Date();
-  // console.log("StartDate:", now);
-  const conn = await mysql2.createConnection({
-    host: "localhost",
-    database: "reversi",
-    user: "reversi",
-    password: process.env.PASSWORD,
-  });
+
+  const conn = await connectMySQL();
 
   try {
     await conn.beginTransaction();
@@ -117,9 +121,55 @@ app.post("/api/games", async (req: Request, res: Response) => {
   res.status(201).end();
 });
 
-// エラーハンドリング設定確認用エンドポイント
-app.get("/api/error", async (req: Request, res: Response) => {
-  throw new Error("Error endpoint");
+app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
+  const turnCount = parseInt(req.params.turnCount);
+
+  const conn = await connectMySQL();
+  try {
+    // ゲームの情報を取得
+    const gameSelectSql =
+      "select id, started_at from games order by id desc limit 1";
+    const gameSelectResult =
+      await conn.execute<mysql2.RowDataPacket[]>(gameSelectSql);
+    const game = gameSelectResult[0][0];
+
+    // 最新ターンの情報を取得
+    const turnSelectSql =
+      "select id, game_id, turn_count, next_disc, end_at from turns where game_id = ? and turn_count = ? ";
+    const turnSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
+      turnSelectSql,
+      [game["id"], turnCount],
+    );
+    const turn = turnSelectResult[0][0];
+
+    // 最新ターンの盤面の状態を取得
+    const squareSelectSql =
+      "SELECT id, turn_id, disc, x, y FROM squares WHERE turn_id = ?";
+    const squaresSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
+      squareSelectSql,
+      [turn["id"]],
+    );
+    // 最新ターンの盤面の石を設置
+    const squares = squaresSelectResult[0];
+    const board = Array.from(Array(8)).map(() => Array.from(Array(8)));
+    squares.forEach((s) => {
+      board[s.y][s.x] = s.disc;
+    });
+
+    const responseBody = {
+      turnCount,
+      board,
+      nextDisc: turn["next_disc"],
+      // TODO　決着がついている場合はgame__resultsから取得する
+      winnerDisc: null,
+    };
+
+    res.json(responseBody);
+  } catch (e) {
+    throw e;
+  } finally {
+    await conn.end();
+  }
 });
 
 // エラーハンドラは必ず全てのルート定義や通常ミドルウェアの後に置く。
