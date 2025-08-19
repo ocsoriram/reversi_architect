@@ -1,4 +1,4 @@
-import { turnRecord } from "./dataAccess/turnRecord";
+import { TurnRecord } from "./dataAccess/turnRecord";
 import { TurnGateway } from "./dataAccess/turnGateway";
 import { GameRecord } from "./dataAccess/gameRecord";
 import { GameGateway } from "./dataAccess/gameGateway";
@@ -7,9 +7,11 @@ import morgan from "morgan";
 import "express-async-errors";
 import mysql2 from "mysql2/promise";
 import dotenv from "dotenv";
+import { MoveGateway } from "./dataAccess/moveGateway";
 
 dotenv.config();
 
+// 石の色を定義
 const EMPTY: number = 0;
 const DARK: number = 1;
 const LIGHT: number = 2;
@@ -36,6 +38,7 @@ const app = express();
 
 const gameGateway = new GameGateway();
 const turnGateway = new TurnGateway();
+const moveGateway = new MoveGateway();
 
 const errorHandler = (
   err: any,
@@ -49,6 +52,7 @@ const errorHandler = (
   });
 };
 
+// mysqlのコネクタ準備
 const connectMySQL = async () => {
   return await mysql2.createConnection({
     host: "localhost",
@@ -79,9 +83,9 @@ app.post("/api/games", async (req: Request, res: Response) => {
 
     const squareCount = initialBoard
       .map((line) => {
-        return line.length;
+        return line.length; // 各行のマス目数(列数)を取り出す
       })
-      .reduce((v1, v2) => v1 + v2, 0);
+      .reduce((v1, v2) => v1 + v2, 0); // 全行分を足し合わせる
 
     //
     const squaresInsertSql =
@@ -123,16 +127,7 @@ app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
       throw new Error("Latest game not found");
     }
 
-    // 最新ターンの情報を取得
-    // const turnSelectSql =
-    //   "select id, game_id, turn_count, next_disc, end_at from turns where game_id = ? and turn_count = ? ";
-    // const turnSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
-    //   turnSelectSql,
-    //   [gameRecord?.id, turnCount],
-    // );
-    // const turn = turnSelectResult[0][0];
-
-    const turnRecord = await turnGateway.findLatest(
+    const turnRecord = await turnGateway.findByGameIdAndTurnCount(
       conn,
       gameRecord,
       turnCount,
@@ -183,23 +178,28 @@ app.post("/api/games/latest/turns", async (req, res) => {
   const conn = await connectMySQL();
   try {
     const gameRecord = await gameGateway.findLatest(conn);
+    if (!gameRecord) {
+      throw new Error("Latest game not found");
+    }
 
     // 1ターン前の情報を取得
     const previousTurnCount = turnCount - 1;
-    const turnSelectSql =
-      "select id, game_id, turn_count, next_disc, end_at from turns where game_id = ? and turn_count = ? ";
-    const turnSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
-      turnSelectSql,
-      [gameRecord?.id, previousTurnCount],
+
+    const turnRecord = await turnGateway.findByGameIdAndTurnCount(
+      conn,
+      gameRecord,
+      previousTurnCount,
     );
-    const turn = turnSelectResult[0][0];
+    if (!turnRecord) {
+      throw Error("Latest turn not found");
+    }
 
     // 最新ターンの盤面の状態を取得
     const squareSelectSql =
       "SELECT id, turn_id, disc, x, y FROM squares WHERE turn_id = ?";
     const squaresSelectResult = await conn.execute<mysql2.RowDataPacket[]>(
       squareSelectSql,
-      [turn["id"]],
+      [turnRecord.id],
     );
     // 一つ前のターンの盤面の石を設置
     const squares = squaresSelectResult[0];
@@ -223,7 +223,7 @@ app.post("/api/games/latest/turns", async (req, res) => {
 
     const turnInsertResult = await conn.execute<mysql2.ResultSetHeader>(
       "insert into turns (game_id, turn_count, next_disc, end_at) values (?,?,?,?)",
-      [gameRecord?.id, turnCount, nextDisc, now],
+      [gameRecord.id, turnCount, nextDisc, now],
     );
     const turnId = turnInsertResult[0].insertId;
 
@@ -252,10 +252,7 @@ app.post("/api/games/latest/turns", async (req, res) => {
 
     await conn.execute(squaresInsertSql, squaresInsertValues);
 
-    const insertMovesSql =
-      "INSERT INTO moves (turn_id, disc, x, y) VALUES(?,?,?,?)";
-
-    await conn.execute(insertMovesSql, [turnId, disc, x, y]);
+    await moveGateway.insert(conn, turnRecord, disc, x, y);
 
     await conn.commit();
   } catch (e) {

@@ -1,4 +1,4 @@
-export class turnRecord {
+export class TurnRecord {
   constructor(
     private _id: number,
     private _game_id: number,

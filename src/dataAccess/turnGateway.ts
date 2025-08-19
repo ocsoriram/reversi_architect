@@ -1,13 +1,13 @@
 import { GameRecord } from "./gameRecord";
 import mysql2 from "mysql2/promise";
-import { turnRecord } from "./turnRecord";
+import { TurnRecord } from "./turnRecord";
 
 export class TurnGateway {
-  async findLatest(
+  async findByGameIdAndTurnCount(
     conn: mysql2.Connection,
     gameRecord: GameRecord,
     turnCount: number,
-  ): Promise<turnRecord> {
+  ): Promise<TurnRecord | undefined> {
     // 最新ターンの情報を取得
     const turnSelectSql =
       "select id, game_id, turn_count, next_disc, end_at from turns where game_id = ? and turn_count = ? ";
@@ -15,14 +15,17 @@ export class TurnGateway {
       turnSelectSql,
       [gameRecord?.id, turnCount],
     );
-    const turn = turnSelectResult[0][0];
+    const record = turnSelectResult[0][0];
 
-    return new turnRecord(
-      turn["id"],
-      turn["game_id"],
-      turn["turn_count"],
-      turn["next_disc"],
-      turn["end_at"],
+    if (!record) {
+      return undefined;
+    }
+    return new TurnRecord(
+      record["id"],
+      record["game_id"],
+      record["turn_count"],
+      record["next_disc"],
+      record["end_at"],
     );
   }
 
@@ -32,7 +35,7 @@ export class TurnGateway {
     turnCount: number,
     nextDisc: number,
     endAt: Date,
-  ): Promise<turnRecord> {
+  ): Promise<TurnRecord> {
     const sql =
       "insert into turns (game_id, turn_count, next_disc, end_at) values (?,?,?,?)";
     const turnInsertResult = await conn.execute<mysql2.ResultSetHeader>(sql, [
@@ -44,6 +47,6 @@ export class TurnGateway {
 
     const turnId = turnInsertResult[0].insertId;
 
-    return new turnRecord(turnId, gameRecord.id, turnCount, nextDisc, endAt);
+    return new TurnRecord(turnId, gameRecord.id, turnCount, nextDisc, endAt);
   }
 }
