@@ -11,6 +11,31 @@ const turnGateway = new TurnGateway();
 const moveGateway = new MoveGateway();
 const squareGateway = new SquareGateway();
 
+export class FindLatestGameTurnByTurnCountOutputDTO {
+  constructor(
+    private _turnCount: number,
+    private _board: number[][],
+    private _nextDisc: number | undefined,
+    private _winnerDisc: number | undefined,
+  ) {}
+
+  get turnCount() {
+    return this._turnCount;
+  }
+
+  get board() {
+    return this._board;
+  }
+
+  get nextDisc() {
+    return this._nextDisc;
+  }
+
+  get winnerDisc() {
+    return this._winnerDisc;
+  }
+}
+
 /**
  * turnを扱うクラス
  */
@@ -26,7 +51,9 @@ export class TurnService {
         winnerDisc: null,
       }
    */
-  async findLatestGameTurnByTurnCount(turnCount: number) {
+  async findLatestGameTurnByTurnCount(
+    turnCount: number,
+  ): Promise<FindLatestGameTurnByTurnCountOutputDTO> {
     const conn = await connectMySQL();
 
     try {
@@ -55,13 +82,12 @@ export class TurnService {
         board[s.y][s.x] = s.disc;
       });
 
-      return {
+      return new FindLatestGameTurnByTurnCountOutputDTO(
         turnCount,
         board,
-        nextDisc: turnRecord.next_disc,
-        // TODO 決着がついている場合はgame_resultsから取得する
-        winnerDisc: null,
-      };
+        turnRecord.next_disc,
+        undefined,
+      );
     } catch (e) {
       throw e;
     } finally {
