@@ -6,4 +6,12 @@ export class Move {
     private _disc: Disc,
     private _point: Point,
   ) {}
+
+  get disc() {
+    return this._disc;
+  }
+
+  get point() {
+    return this._point;
+  }
 }

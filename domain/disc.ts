@@ -5,3 +5,8 @@ export const Disc = {
 } as const;
 
 export type Disc = (typeof Disc)[keyof typeof Disc];
+
+// FIXME 後で改善予定
+export function toDisc(value: number): Disc {
+  return value as Disc;
+}
